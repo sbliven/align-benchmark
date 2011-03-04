@@ -5,4 +5,25 @@
   <version>0.0.1-SNAPSHOT</version>
   <name>AlignBenchmark</name>
   <description>Benchmarks for CE, CE-CP, FATCAT, and other structural alignments</description>
+  <dependencies>
+  	<dependency>
+  		<groupId>org.biojava</groupId>
+  		<artifactId>biojava3-structure</artifactId>
+  		<version>3.0.2-SNAPSHOT</version>
+  		<scope>compile</scope>
+  	</dependency>
+  	<dependency>
+  		<groupId>org.biojava</groupId>
+  		<artifactId>biojava3-core</artifactId>
+  		<version>3.0.2-SNAPSHOT</version>
+  		<scope>compile</scope>
+  	</dependency>
+  	<dependency>
+  		<groupId>junit</groupId>
+  		<artifactId>junit</artifactId>
+  		<version>4.8.2</version>
+  		<type>jar</type>
+  		<scope>test</scope>
+  	</dependency>
+  </dependencies>
 </project>
