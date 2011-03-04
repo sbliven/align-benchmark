@@ -20,7 +20,7 @@ import org.rcsb.alignBenchmark.MultipleAlignmentParser;
  * Parses files formatted like the CPDB dataset.
  * <i>Lo et al. CPDB: a database of circular permutation in proteins. Nucleic Acids Res (2009) vol. 37 (Database issue) pp. D328-32</i>
  * <br/>Available through the <a href="http://sarst.life.nthu.edu.tw/cpdb/">CPDB</a>
- * or at src/test/resources/align/benchmarks/CPDB*.txt.
+ * or at src/main/resources/CPDB*.txt.
  * Machine readable files courtesy of Wei-Cheng Lo and Ping-Chiang Lyu
  * <p>
  * See {@link CDCPIterator} for info about the format.
@@ -39,7 +39,7 @@ public class CPDBParser implements MultipleAlignmentParser
 	 */
 	public static void main(String[] args)
 	{
-		String filename = "src/test/resources/align/benchmarks/CPDB_CPpairsAlignments_withCPSiteRefinement.txt";
+		String filename = "src/main/resources/CPDB_CPpairsAlignments_withCPSiteRefinement.txt";
 		CPDBParser parser = new CPDBParser(filename);
 		try {
 		for(MultipleAlignment ma : parser) {

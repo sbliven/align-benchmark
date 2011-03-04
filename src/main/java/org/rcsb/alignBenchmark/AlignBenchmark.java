@@ -9,6 +9,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -50,7 +51,7 @@ public class AlignBenchmark {
 	/* TODO write a test which makes sure that CeMain gives good performance against RIPC
 	@Test
 	public void runRIPCBenchmark() {
-		String RIPCfile = "src/test/resources/align/benchmarks/RIPC.align";
+		String RIPCfile = "src/main/resources/RIPC.align";
 		MultipleAlignmentParser parser = new RIPCParser(RIPCfile);
 		runBenchmark(parser);
 	}
@@ -403,13 +404,14 @@ public class AlignBenchmark {
 		String fileType = args[0];
 		if(fileType.equalsIgnoreCase("RIPC")) {
 			if(inFile == null )
-				inFile = "src/test/resources/align/benchmarks/RIPC.align";
+				inFile = "";
+				URL u = AlignBenchmark.class.getResource("RIPC.align");
 			//outFile = "/Users/blivens/dev/bourne/benchmarks/RIPC.stats";
 			parser = new RIPCParser(inFile);
 		}
 		else if(fileType.equalsIgnoreCase("CPDB")) {
 			if(inFile == null )
-				inFile = "src/test/resources/align/benchmarks/CPDB_CPpairsAlignments_withCPSiteRefinement.txt";
+				inFile = "src/main/resources/CPDB_CPpairsAlignments_withCPSiteRefinement.txt";
 			//outFile = "/Users/blivens/dev/bourne/benchmarks/CPDB.stats";
 			parser = new CPDBParser(inFile);
 		}

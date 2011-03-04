@@ -6,6 +6,7 @@ package org.rcsb.alignBenchmark;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.BufferedReader;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -20,7 +21,7 @@ import java.util.regex.Pattern;
  * Conformational variability), cited in:<br/>
  * <i>Mayr et al. Comparative analysis of protein structure alignments. BMC Struct Biol (2007) vol. 7 pp. 50</i>
  * <br/>and available online <a href="http://www.biomedcentral.com/content/supplementary/1472-6807-7-50-S5.txt">here</a>
- * or at src/test/resources/align/benchmarks/RIPC.align.
+ * or at src/main/resources/RIPC.align.
  * <p>
  * See {@link RIPCIterator} for info about the format.
  * @author Spencer Bliven
@@ -38,7 +39,7 @@ public class RIPCParser implements MultipleAlignmentParser
 	 */
 	public static void main(String[] args)
 	{
-		String filename = "src/test/resources/align/benchmarks/RIPC.align";
+		String filename = "src/main/resources/RIPC.align";
 		RIPCParser parser = new RIPCParser(filename);
 		for(MultipleAlignment ma : parser) {
 			System.out.println(ma.display());
@@ -124,12 +125,13 @@ public class RIPCParser implements MultipleAlignmentParser
 			Pattern.compile("^(?:#.*|$)"); // labels are a subset of comments; check for labels first
 
 		public RIPCIterator(String filename) throws IOException {
-			ripc = new BufferedReader(new FileReader(filename));
-			assert(ripc.markSupported());
+			this(new BufferedReader(new FileReader(filename)));
+		}
+		public RIPCIterator(BufferedReader ripc) throws IOException {
+			this.ripc = ripc;
 			nextLabels = null;
 			skipComments();
 		}
-		
 		//@Override
 		public MultipleAlignment next()
 		{
