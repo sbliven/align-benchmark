@@ -6,7 +6,6 @@ package org.rcsb.alignBenchmark;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.BufferedReader;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -39,7 +38,8 @@ public class RIPCParser implements MultipleAlignmentParser
 	 */
 	public static void main(String[] args)
 	{
-		String filename = "src/main/resources/RIPC.align";
+		
+		String filename = RIPCParser.class.getResource("/RIPC.align").getFile();
 		RIPCParser parser = new RIPCParser(filename);
 		for(MultipleAlignment ma : parser) {
 			System.out.println(ma.display());
@@ -60,18 +60,7 @@ public class RIPCParser implements MultipleAlignmentParser
 	
 
 	private static final Pattern scopRegex = Pattern.compile("d(....)(.)(.)");
-	/**
-	 * 
-	 * @param scopIDs
-	 * @return
-	 */
-	public static String[] getPDBNames(String[] scopIDs) {
-		String[] pdbNames = new String[scopIDs.length];
-		for(int i=0;i<scopIDs.length;i++) {
-			pdbNames[i] = getPDBName(scopIDs[i]);
-		}
-		return pdbNames;
-	}
+
 	/**
 	 * Converts scop domain identifiers (eg 'd1lnlb1') into a PDB ID and chain
 	 * (eg '1lnl.B').
@@ -89,7 +78,19 @@ public class RIPCParser implements MultipleAlignmentParser
 			return match.group(1);
 		}
 	}
-	
+	/**
+	 * Parses an array of scop domain identifiers, calling getPDBName for each.
+	 * @param scopIDs
+	 * @return
+	 * @see getPDBName
+	 */
+	public static String[] getPDBNames(String[] scopIDs) {
+		String[] pdbNames = new String[scopIDs.length];
+		for(int i=0;i<scopIDs.length;i++) {
+			pdbNames[i] = getPDBName(scopIDs[i]);
+		}
+		return pdbNames;
+	}
 	
 	
 	/**
@@ -146,6 +147,7 @@ public class RIPCParser implements MultipleAlignmentParser
 
 				while( line!=null ) {
 					line = line.trim();
+					// Check if line defines a residue pair
 					Matcher pair = pairRegex.matcher(line);
 					if(pair.matches()) {
 						String aa1 = pair.group(1);
@@ -170,9 +172,13 @@ public class RIPCParser implements MultipleAlignmentParser
 						residues.get(1).add(new PDBResidue(pdb2,chain2,aa2));
 					}
 					else {
+						// Check if line starts a new set of proteins
 						Matcher labels=labelRegex.matcher(line);
 						if(labels.matches()) {
-							MultipleAlignment m = new MultipleAlignment(RIPCParser.getPDBNames(nextLabels),residues);
+							String[] names = nextLabels.clone();
+							// To use full chains:
+							//names = RIPCParser.getPDBNames(nextLabels);
+							MultipleAlignment m = new MultipleAlignment(names,residues);
 
 							nextLabels[0] = labels.group(1);
 							nextLabels[1] = labels.group(2);

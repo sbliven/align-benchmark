@@ -41,8 +41,8 @@ public class AlignBenchmark {
 	private int maxLength; // Don't try alignments between proteins which are too long.
 	private List<Metric> metrics;
 
-	public AlignBenchmark(String cachePath, StructureAlignment method, int maxLength) {
-		this.cache = new AtomCache(cachePath, true);
+	public AlignBenchmark(AtomCache cache, StructureAlignment method, int maxLength) {
+		this.cache = cache;
 		this.aligner = method;
 		this.maxLength = maxLength;
 		this.metrics = AlignmentStats.defaultMetrics();
@@ -51,7 +51,7 @@ public class AlignBenchmark {
 	/* TODO write a test which makes sure that CeMain gives good performance against RIPC
 	@Test
 	public void runRIPCBenchmark() {
-		String RIPCfile = "src/main/resources/RIPC.align";
+		String RIPCfile = AlignBenchmark.class.getResource("/RIPC.align").getFile();
 		MultipleAlignmentParser parser = new RIPCParser(RIPCfile);
 		runBenchmark(parser);
 	}
@@ -71,9 +71,10 @@ public class AlignBenchmark {
 				out.flush();
 			}
 
-		} catch (Exception e) {
+		} catch (StructureException e) {
 			e.printStackTrace();
-			return;
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -116,6 +117,7 @@ public class AlignBenchmark {
 				this.currentAlignment = this.parser.next();
 
 				// Get alignment structures
+				// The alignment names should be parsable by cache.getAtoms()
 				String[] pdbIDs = this.currentAlignment.getNames();
 				this.structures= new ArrayList<Atom[]>(pdbIDs.length);
 
@@ -259,7 +261,6 @@ public class AlignBenchmark {
 
 	public static void main(String[] args) {
 		//// Set parameters
-		// TODO make these arguments
 		int maxLength = 0; // Don't try alignments between proteins which are too long.
 		String inFile = null;
 		String outFile = null;
@@ -403,16 +404,17 @@ public class AlignBenchmark {
 
 		String fileType = args[0];
 		if(fileType.equalsIgnoreCase("RIPC")) {
-			if(inFile == null )
-				inFile = "";
-				URL u = AlignBenchmark.class.getResource("RIPC.align");
-			//outFile = "/Users/blivens/dev/bourne/benchmarks/RIPC.stats";
+			if(inFile == null ) {
+				URL inURL = AlignBenchmark.class.getResource("/RIPC.align");				
+				inFile = inURL.getFile();
+			}
 			parser = new RIPCParser(inFile);
 		}
 		else if(fileType.equalsIgnoreCase("CPDB")) {
-			if(inFile == null )
-				inFile = "src/main/resources/CPDB_CPpairsAlignments_withCPSiteRefinement.txt";
-			//outFile = "/Users/blivens/dev/bourne/benchmarks/CPDB.stats";
+			if(inFile == null ) {
+				URL inURL = AlignBenchmark.class.getResource("/CPDB_CPpairsAlignments_withCPSiteRefinement.txt");				
+				inFile = inURL.getFile();
+			}
 			parser = new CPDBParser(inFile);
 		}
 		else {
@@ -437,7 +439,10 @@ public class AlignBenchmark {
 			}
 		}
 
-		AlignBenchmark bm = new AlignBenchmark("/tmp/",aligner,maxLength);
+		AtomCache cache = new AtomCache(System.getProperty("java.io.tmpdir"), true);
+		cache.setStrictSCOP(false);
+		
+		AlignBenchmark bm = new AlignBenchmark(cache,aligner,maxLength);
 		bm.runBenchmark(out, parser);
 	}
 

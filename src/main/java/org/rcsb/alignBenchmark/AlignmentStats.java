@@ -16,7 +16,6 @@ import org.rcsb.alignBenchmark.metrics.AlignmentLengthMetric;
 import org.rcsb.alignBenchmark.metrics.ConsistencyMetric;
 import org.rcsb.alignBenchmark.metrics.MetaDataMetric;
 import org.rcsb.alignBenchmark.metrics.Metric;
-import org.rcsb.alignBenchmark.metrics.PercentCorrectMetric;
 import org.rcsb.alignBenchmark.metrics.ProteinLengthMetric;
 import org.rcsb.alignBenchmark.metrics.RMSDMetric;
 import org.rcsb.alignBenchmark.metrics.TMScoreMetric;

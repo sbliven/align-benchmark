@@ -39,7 +39,7 @@ public class CPDBParser implements MultipleAlignmentParser
 	 */
 	public static void main(String[] args)
 	{
-		String filename = "src/main/resources/CPDB_CPpairsAlignments_withCPSiteRefinement.txt";
+		String filename = AlignBenchmark.class.getResource("/CPDB_CPpairsAlignments_withCPSiteRefinement.txt").getFile();
 		CPDBParser parser = new CPDBParser(filename);
 		try {
 		for(MultipleAlignment ma : parser) {
