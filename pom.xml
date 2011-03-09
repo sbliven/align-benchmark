@@ -5,6 +5,9 @@
   <version>0.0.1-SNAPSHOT</version>
   <name>AlignBenchmark</name>
   <description>Benchmarks for CE, CE-CP, FATCAT, and other structural alignments</description>
+  <scm>
+  	<developerConnection>scm:svn:svn+ssh://pdbcvs.rcsb.org/misc/pdb/svn</developerConnection>
+  </scm>
   <dependencies>
   	<dependency>
   		<groupId>org.biojava</groupId>

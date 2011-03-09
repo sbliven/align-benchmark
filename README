@@ -1,0 +1,10 @@
+ALIGN BENCHMARK
+
+AUTHOR: SPENCER BLIVEN <sbliven@ucsd.edu>
+
+This project contains code to analyze structural alignment quality. It was
+created for benchmarking CE-CP in 2010.
+
+The main executable is org.rcsb.alignBenchmark.AlignBenchmark. Several other
+classes also have main methods for testing purposes.
+
