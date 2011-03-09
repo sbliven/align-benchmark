@@ -9,61 +9,48 @@ import org.biojava.bio.structure.ResidueNumber;
  * Small bean to hold information about a single residue in the PDB
  * if we don't want to create a full {@link org.biojava.bio.structure.Group Group} object.
  * @author Spencer Bliven
- * @deprecated replaced by {@link ResidueNumber}
  */
-public class PDBResidue {
-	private String residueCode;
-	private String chain;
+public class PDBResidue extends ResidueNumber{
+
+	private static final long serialVersionUID = 2708507169769496311L;
+	
 	private String aaName; //3-letter code
 	
 	/**
-	 * @param residueCode The {@link org.biojava.bio.structure.Group#getPDBCode() residue code}
-	 *  for this residue (residue number + insertion code)
-	 * @param chain 1-letter String giving the chain
 	 * @param aaName 3-letter String giving the amino acid
+	 * @param residueNum The {@link org.biojava.bio.structure.Group#getPDBCode() residue code}
+	 *  for this residue (residue number + insertion code)
 	 */
-	public PDBResidue(String residueCode, String chain, String aaName) {
-		this.residueCode = residueCode;
-		this.chain = chain;
+	public PDBResidue(ResidueNumber residueNum, String aaName) {
+		super(residueNum.getChainId(), residueNum.getSeqNum(), residueNum.getInsCode());
 		this.aaName = aaName;
 	}
 	
 	/**
-	 * @param residueCode The {@link org.biojava.bio.structure.Group#getPDBCode() residue code}
-	 *  for this residue (residue number + insertion code)
-	 * @param chain 1-letter String giving the chain
-	 */
-	public PDBResidue(String residueCode, String chain) {
-		this(residueCode,chain,null);
-	}
-
-	/**
-	 * @return The {@link org.biojava.bio.structure.Group#getPDBCode() residue code}
+	 * @param residueNum The {@link org.biojava.bio.structure.Group#getPDBCode() residue code}
 	 *  for this residue (residue number + insertion code)
 	 */
-	public String getResidueCode() {
-		return residueCode;
+	public PDBResidue(ResidueNumber residueNum) {
+		this(residueNum,null);
 	}
-
+	
 	/**
-	 * @param residueCode the residueCode to set
+	 * Creates a PDBResidue from a string giving the number and insertion code.
+	 * @param residueNum The {@link org.biojava.bio.structure.Group#getPDBCode() residue code}
+	 *  for this residue (residue number + insertion code)
+	 * @see ResidueNumber#fromString(String)
 	 */
-	public void setResidueCode(String residueCode) {
-		this.residueCode = residueCode;
+	public PDBResidue(String residueNum) {
+		this(residueNum, null);
 	}
-
+	
 	/**
-	 * @return the chain
+	 * @param residueNum The {@link org.biojava.bio.structure.Group#getPDBCode() residue code}
+	 *  for this residue (residue number + insertion code)
+	 * @param aaName 3-letter String giving the amino acid
 	 */
-	public String getChain() {
-		return chain;
-	}
-
-	/**
-	 * @param chain the chain to set
-	 */
-	public void setChain(String chain) {
-		this.chain = chain;
+	public PDBResidue(String residueNum, String aaName) {
+		this(ResidueNumber.fromString(residueNum),aaName);
 	}
 
 	/**
@@ -80,6 +67,7 @@ public class PDBResidue {
 		this.aaName = aaName;
 	}
 
+	
 	/**
 	 * @see java.lang.Object#toString()
 	 */
@@ -89,12 +77,8 @@ public class PDBResidue {
 		if(aaName != null) {
 			str+=aaName+".";
 		}
-		return String.format("%s%s.%s", str,residueCode,chain );
+		return String.format("%s%s.%s", str,super.toString(),this.getChainId() );
 	}
 	
 	
-	
-	
-	
-
 }

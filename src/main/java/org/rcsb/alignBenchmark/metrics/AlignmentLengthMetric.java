@@ -41,7 +41,7 @@ public abstract class AlignmentLengthMetric {
 
 		@Override
 		public double calculate(MultipleAlignment reference, AFPChain align, Atom[] ca1, Atom[] ca2, Map<String, Object> metaData) {
-			return (double)align.getAlnLength();
+			return (double)align.getOptLength();
 		}
 
 		@Override

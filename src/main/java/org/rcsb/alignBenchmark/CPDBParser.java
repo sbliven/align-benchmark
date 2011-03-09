@@ -184,8 +184,8 @@ public class CPDBParser implements MultipleAlignmentParser
 							String pdb1 = pair.group(1);
 							String pdb2 = pair.group(4);
 							
-							residues.get(0).add(new PDBResidue(pdb1,nextChains[0],aa1));
-							residues.get(1).add(new PDBResidue(pdb2,nextChains[1],aa2));
+							residues.get(0).add(new PDBResidue(pdb1));
+							residues.get(1).add(new PDBResidue(pdb2));
 						}
 						else {
 							Matcher identifier=identifierRegex.matcher(line);

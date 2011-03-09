@@ -150,8 +150,8 @@ public class RIPCParser implements MultipleAlignmentParser
 					// Check if line defines a residue pair
 					Matcher pair = pairRegex.matcher(line);
 					if(pair.matches()) {
-						String aa1 = pair.group(1);
-						String aa2 = pair.group(5);
+//						String aa1 = pair.group(1);
+//						String aa2 = pair.group(5);
 
 						String pdb1 = pair.group(2);
 						String pdb2 = pair.group(6);
@@ -164,12 +164,12 @@ public class RIPCParser implements MultipleAlignmentParser
 							pdb2 += pair.group(7);
 						}
 
-						String chain1 = pair.group(4);
-						String chain2 = pair.group(8);
+//						String chain1 = pair.group(4);
+//						String chain2 = pair.group(8);
 
 
-						residues.get(0).add(new PDBResidue(pdb1,chain1,aa1));
-						residues.get(1).add(new PDBResidue(pdb2,chain2,aa2));
+						residues.get(0).add(new PDBResidue(pdb1));
+						residues.get(1).add(new PDBResidue(pdb2));
 					}
 					else {
 						// Check if line starts a new set of proteins

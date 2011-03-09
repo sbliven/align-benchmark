@@ -8,6 +8,7 @@ import java.util.List;
 import org.biojava.bio.structure.Atom;
 import org.biojava.bio.structure.Chain;
 import org.biojava.bio.structure.Group;
+import org.biojava.bio.structure.ResidueNumber;
 import org.biojava.bio.structure.StructureException;
 
 /**
@@ -207,7 +208,7 @@ public class MultipleAlignment
 				if(groupNr<0) {
 					throw new StructureException(String.format(
 							"Unable to locate residue %s in %s.",
-							residues[protIndex][res].toString(), struct[0].getParent().getParent().getParent().getPDBCode() ));
+							residues[protIndex][res].toString(), struct[0].getGroup().getChain().getParent().getPDBCode() ));
 				}
 				alignMat[prot][res] = groupNr;
 			}
@@ -232,11 +233,27 @@ public class MultipleAlignment
 	private static int findGroup(Atom[] atoms, PDBResidue pdbCode, int atomIndexGuess) {
 		int pos=atomIndexGuess;
 		do {
-			Group g = atoms[pos].getParent();
-			Chain c = g.getParent();
-			if( ("_".equals(pdbCode.getChain()) || c.getName().equals(pdbCode.getChain()) ) &&
-					g.getPDBCode().equals(pdbCode.getResidueCode()) &&
-					(pdbCode.getAaName() == null || pdbCode.getAaName().equals(g.getPDBName()) )) {
+			Group g = atoms[pos].getGroup();
+			ResidueNumber r = g.getResidueNumber();
+			// reference chais of null or "_" always match
+			boolean matchesChain = ( pdbCode.getChainId() == null ||
+					pdbCode.getChainId().equals("_") ||
+					pdbCode.getChainId().equals(r.getChainId()) 
+					);
+			// sequence number must match exactly
+			boolean matchesNum = r.getSeqNum().equals(pdbCode.getSeqNum());
+			// insertion code must match exactly
+			boolean matchesIns = ( pdbCode.getInsCode() == null ? r.getInsCode() == null :
+					pdbCode.getInsCode().equals(r.getInsCode())
+					);
+			// AA must match if it has been set
+			boolean matchesAA = (
+					pdbCode.getAaName() == null ||
+					pdbCode.getAaName().equals(g.getPDBName())
+					);
+			if(  matchesChain &&
+					matchesNum && matchesIns &&
+					matchesAA ) {
 				return pos;
 			}
 			pos++;
@@ -294,6 +311,10 @@ public class MultipleAlignment
 		}
 	}
 	
+	/**
+	 * 
+	 * @return The number of residue pairs in this alignment
+	 */
 	public int size() {
 		if( residues.length<1 ) {
 			return 0;

@@ -12,13 +12,7 @@ import java.util.Map;
 
 import org.biojava.bio.structure.Atom;
 import org.biojava.bio.structure.align.model.AFPChain;
-import org.rcsb.alignBenchmark.metrics.AlignmentLengthMetric;
-import org.rcsb.alignBenchmark.metrics.ConsistencyMetric;
-import org.rcsb.alignBenchmark.metrics.MetaDataMetric;
-import org.rcsb.alignBenchmark.metrics.Metric;
-import org.rcsb.alignBenchmark.metrics.ProteinLengthMetric;
-import org.rcsb.alignBenchmark.metrics.RMSDMetric;
-import org.rcsb.alignBenchmark.metrics.TMScoreMetric;
+import org.rcsb.alignBenchmark.metrics.*;
 
 /**
  * An AlignmentStats object holds the result of calling the 
@@ -151,6 +145,8 @@ public class AlignmentStats  {
 		//metrics.add(new PercentCorrectMetric());
 		metrics.add(new ConsistencyMetric() );
 		metrics.add(new ConsistencyMetric(4) );
+		metrics.add(new CPMetric.Reference());
+		metrics.add(new CPMetric.Alignment());
 		return metrics;
 	}
 }

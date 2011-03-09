@@ -42,16 +42,16 @@ public class MultipleAlignmentTest extends TestCase {
 
 		PDBResidue[][] residues = new PDBResidue[][] {
 				new PDBResidue[] {
-						new PDBResidue("194", "B", "HIS"), 
-						new PDBResidue("198", "B", "HIS"), 
-						new PDBResidue("224", "B", "HIS"),
-						new PDBResidue("344", "B", "HIS")
+						new PDBResidue("194"), 
+						new PDBResidue("198"), 
+						new PDBResidue("224"),
+						new PDBResidue("344")
 				},
 				new PDBResidue[] {
-						new PDBResidue("41", "B", "HIS"), 
-						new PDBResidue("61", "B", "HIS"), 
-						new PDBResidue("70", "B", "HIS"),
-						new PDBResidue("181", "B", "HIS")
+						new PDBResidue("41"), 
+						new PDBResidue("61"), 
+						new PDBResidue("70"),
+						new PDBResidue("181")
 				},
 		};
 		//Expected output
@@ -96,9 +96,9 @@ public class MultipleAlignmentTest extends TestCase {
 
 			//Some residues which should be found in 1nls, and their corresponding numbers
 			HashMap<PDBResidue,Integer> residues = new HashMap<PDBResidue, Integer>();
-			residues.put(new PDBResidue("8","A","GLU"), 7);
-			residues.put(new PDBResidue("8","_","GLU"), 7);
-			residues.put(new PDBResidue("8","A","ASP"), -1); // Ignores the amino acid
+			residues.put(new PDBResidue("8"), 7);
+			residues.put(new PDBResidue("8"), 7);
+			residues.put(new PDBResidue("8"), -1); // Ignores the amino acid
 
 			//Use reflection to get around private function
 			//calls findGroup()h
