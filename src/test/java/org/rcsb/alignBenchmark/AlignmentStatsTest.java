@@ -161,7 +161,6 @@ public class AlignmentStatsTest extends TestCase {
 	 *          1S-27S   65S-76S   77S-83S  88S-98S  99S-102S
 	 * @return
 	 */
-	@SuppressWarnings("deprecation")
 	private static MultipleAlignment createMA1() {
 
 

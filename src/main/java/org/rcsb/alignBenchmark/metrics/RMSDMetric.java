@@ -176,12 +176,12 @@ public abstract class RMSDMetric {
 
 
 			PrintWriter pw1 = new PrintWriter(new FileWriter("/Users/blivens/dev/bourne/benchmarks/last1.pdb"));
-			Structure s1 = ca1[0].getParent().getParent().getParent();
+			Structure s1 = ca1[0].getGroup().getChain().getParent();
 			pw1.println(s1.toPDB());                   
 			pw1.close();
 
 			PrintWriter pw2 = new PrintWriter(new FileWriter("/Users/blivens/dev/bourne/benchmarks/last2.pdb"));
-			Structure s2 = ca2[0].getParent().getParent().getParent();
+			Structure s2 = ca2[0].getGroup().getChain().getParent();
 			pw2.println(s2.toPDB());                   
 			pw2.close();
 		} catch (Exception e){

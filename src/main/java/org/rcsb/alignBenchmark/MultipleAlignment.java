@@ -6,7 +6,6 @@ package org.rcsb.alignBenchmark;
 import java.util.Arrays;
 import java.util.List;
 import org.biojava.bio.structure.Atom;
-import org.biojava.bio.structure.Chain;
 import org.biojava.bio.structure.Group;
 import org.biojava.bio.structure.ResidueNumber;
 import org.biojava.bio.structure.StructureException;
