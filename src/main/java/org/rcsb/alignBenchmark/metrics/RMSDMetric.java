@@ -21,8 +21,23 @@ import org.biojava.bio.structure.jama.Matrix;
 import org.rcsb.alignBenchmark.MultipleAlignment;
 
 
-public abstract class RMSDMetric {
-	public static class Reference extends Metric {
+public abstract class RMSDMetric extends Metric{
+	@Override
+	public String format(double result) {
+		return String.format("%.4f", result);
+	}
+	
+	public static class Reference extends RMSDMetric {
+
+		/**
+		 * @param reference The reference alignment
+		 * @param align Ignored
+		 * @param ca1 First structure
+		 * @param ca2 Second structure
+		 * @param metaData Ignored
+		 * @return The rmsd of the reference alignment, or NaN upon error
+		 * @see org.rcsb.alignBenchmark.metrics.Metric#calculate(org.rcsb.alignBenchmark.MultipleAlignment, org.biojava.bio.structure.align.model.AFPChain, org.biojava.bio.structure.Atom[], org.biojava.bio.structure.Atom[], java.util.Map)
+		 */
 
 		@Override
 		public double calculate(MultipleAlignment reference, AFPChain align, Atom[] ca1, Atom[] ca2, Map<String, Object> metaData) {
@@ -65,14 +80,20 @@ public abstract class RMSDMetric {
 			return "Ref_RMSD";
 		}
 
-		@Override
-		public String format(double result) {
-			return String.format("%.4f", result);
-		}
+
 	}
 
-	public static class Alignment extends Metric {
+	public static class Alignment extends RMSDMetric {
 
+		/**
+		 * @param reference Ignored
+		 * @param align AFPChain giving the alignment
+		 * @param ca1 First structure
+		 * @param ca2 Second structure
+		 * @param metaData Ignored
+		 * @return The rmsd of the aligned structures, or NaN upon error
+		 * @see org.rcsb.alignBenchmark.metrics.Metric#calculate(org.rcsb.alignBenchmark.MultipleAlignment, org.biojava.bio.structure.align.model.AFPChain, org.biojava.bio.structure.Atom[], org.biojava.bio.structure.Atom[], java.util.Map)
+		 */
 		@Override
 		public double calculate(MultipleAlignment reference, AFPChain align, Atom[] ca1, Atom[] ca2, Map<String, Object> metaData) {
 			// check if already set in the chain
@@ -120,10 +141,6 @@ public abstract class RMSDMetric {
 			return "Aln_RMSD";
 		}
 
-		@Override
-		public String format(double result) {
-			return String.format("%.4f", result);
-		}
 	}
 	
 	public static void main(String[] args) {

@@ -17,11 +17,7 @@ import org.biojava.bio.structure.align.model.AFPChain;
 import org.biojava.bio.structure.align.seq.SmithWaterman3Daligner;
 import org.biojava.bio.structure.align.util.AtomCache;
 import org.rcsb.alignBenchmark.MultipleAlignment;
-import org.rcsb.alignBenchmark.metrics.AlignmentLengthMetric;
-import org.rcsb.alignBenchmark.metrics.ConsistencyMetric;
-import org.rcsb.alignBenchmark.metrics.Metric;
-import org.rcsb.alignBenchmark.metrics.PercentCorrectMetric;
-import org.rcsb.alignBenchmark.metrics.ProteinLengthMetric;
+import org.rcsb.alignBenchmark.metrics.*;
 
 import junit.framework.TestCase;
 
@@ -61,27 +57,54 @@ public class AlignmentStatsTest extends TestCase {
 		ArrayList<Metric> metrics = new ArrayList<Metric>();
 		metrics.add(new ProteinLengthMetric(0));
 		metrics.add(new ProteinLengthMetric(1));
-//		metrics.add(new MetaDataMetric("alignmentTime","time"));
+		metrics.add(new MetaDataMetric("alignmentTime","time"));
 		metrics.add(new AlignmentLengthMetric.Reference());
 		metrics.add(new AlignmentLengthMetric.Alignment());
-//		metrics.add(new RMSDMetric.Reference());
-//		metrics.add(new RMSDMetric.Alignment());
-//		metrics.add(new TMScoreMetric.Reference());
-//		metrics.add(new TMScoreMetric.Alignment());
+		metrics.add(new RMSDMetric.Reference());
+		metrics.add(new RMSDMetric.Alignment());
+		metrics.add(new TMScoreMetric.Reference());
+		metrics.add(new TMScoreMetric.Alignment());
 		metrics.add(new PercentCorrectMetric());
 		metrics.add(new ConsistencyMetric() );
 		metrics.add(new ConsistencyMetric(4) );
+		metrics.add(new GapLengthMetric.Reference());
+		// For fewer than 100 gap residues, the integer part gives number of gaps
+		// and the fractional part gives total gap length
+		metrics.add(new GapLengthMetric.Reference(1.01,.01));
+		metrics.add(new GapLengthMetric.Alignment());
+		metrics.add(new GapLengthMetric.Alignment(1.01,.01));
+		
+		metrics.add(new JiaCEScoreMetric.Reference());
+		metrics.add(new JiaCEScoreMetric.Alignment());
 
 		
 		AlignmentStats stats = new AlignmentStats(metrics,ref, alignment, structures[0],structures[1], null);
 
-		assertEquals("Wrong Length for protein 1.", 78., stats.getResult(0),tolerance);
-		assertEquals("Wrong Length for protein 2.", 77., stats.getResult(1),tolerance);
-		assertEquals("Wrong Ref length.",72., stats.getResult(2),tolerance);
-		assertEquals("Wrong Aln length.",71., stats.getResult(3),tolerance);
-		assertEquals("Wrong PercentCorrectMetric.",0., stats.getResult(4),tolerance);
-		assertEquals("Wrong 0-consistency.",0., stats.getResult(5),tolerance);
-		assertEquals("Wrong 4-consistency.",0., stats.getResult(6),tolerance);
+		int i=0;
+		assertEquals("Wrong Length for protein 1.", 78., stats.getResult(i++),tolerance);
+		assertEquals("Wrong Length for protein 2.", 77., stats.getResult(i++),tolerance);
+		i++;//assertFalse("No time assigned.",Double.isNaN(stats.getResult(i++)));
+		assertEquals("Wrong Ref length.",72., stats.getResult(i++),tolerance);
+		assertEquals("Wrong Aln length.",71., stats.getResult(i++),tolerance);
+		
+		// Note that the following numbers are not hand calculated
+		assertEquals("Wrong Ref RMSD.",2.3844852594668304, stats.getResult(i++),tolerance);
+		assertEquals("Wrong Aln RMSD.",4.153834616231908, stats.getResult(i++),tolerance);
+		assertEquals("Wrong Ref TM-Score.",.6456601492360861, stats.getResult(i++),tolerance);
+		assertEquals("Wrong Aln TM-Score.",.41129832046341386, stats.getResult(i++),tolerance);
+		
+		assertEquals("Wrong PercentCorrectMetric.",0., stats.getResult(i++),tolerance);
+		assertEquals("Wrong 0-consistency.",0., stats.getResult(i++),tolerance);
+		assertEquals("Wrong 4-consistency.",0., stats.getResult(i++),tolerance);
+
+		assertEquals("Wrong number of gaps.",1., stats.getResult(i++),tolerance);
+		assertEquals("Wrong gap penalty.", 1.03, stats.getResult(i++),tolerance);
+		assertEquals("Wrong number of gaps.",3., stats.getResult(i++),tolerance);
+		assertEquals("Wrong gap penalty.", 3.10, stats.getResult(i++),tolerance);
+
+		assertEquals("Wrong Ref ce_score.",2.3844852594668304/72.*(1.+1./72.), stats.getResult(i++),tolerance);
+		assertEquals("Wrong Aln ce_score.",4.153834616231908/71.*(1.+3./71.), stats.getResult(i++),tolerance);
+
 	}
 	
 	public void testSWAlignment() throws StructureException {
@@ -95,24 +118,53 @@ public class AlignmentStatsTest extends TestCase {
 //		metrics.add(new MetaDataMetric("alignmentTime","time"));
 		metrics.add(new AlignmentLengthMetric.Reference());
 		metrics.add(new AlignmentLengthMetric.Alignment());
-//		metrics.add(new RMSDMetric.Reference());
-//		metrics.add(new RMSDMetric.Alignment());
-//		metrics.add(new TMScoreMetric.Reference());
-//		metrics.add(new TMScoreMetric.Alignment());
+		
+		metrics.add(new RMSDMetric.Reference());
+		metrics.add(new RMSDMetric.Alignment());
+		metrics.add(new TMScoreMetric.Reference());
+		metrics.add(new TMScoreMetric.Alignment());
+		
 		metrics.add(new PercentCorrectMetric());
 		metrics.add(new ConsistencyMetric() );
 		metrics.add(new ConsistencyMetric(4) );
 
+		metrics.add(new GapLengthMetric.Reference());
+		// For fewer than 100 gap residues, the integer part gives number of gaps
+		// and the fractional part gives total gap length
+		metrics.add(new GapLengthMetric.Reference(1.01,.01));
+		metrics.add(new GapLengthMetric.Alignment());
+		metrics.add(new GapLengthMetric.Alignment(1.01,.01));
+		
+		metrics.add(new JiaCEScoreMetric.Reference());
+		metrics.add(new JiaCEScoreMetric.Alignment());
+
 		
 		AlignmentStats stats = new AlignmentStats(metrics,ref, alignment, structures[0],structures[1], null);
+		
+		int i=0;
+		assertEquals("Wrong Length for protein 1.", 78., stats.getResult(i++),tolerance);
+		assertEquals("Wrong Length for protein 2.", 77., stats.getResult(i++),tolerance);
+		assertEquals("Wrong Ref length.",72., stats.getResult(i++),tolerance);
+		assertEquals("Wrong Aln length.",35., stats.getResult(i++),tolerance);
+		
+		// Note that the following numbers are not hand calculated
+		assertEquals("Wrong Ref RMSD.",2.3844852594668304, stats.getResult(i++),tolerance);
+		assertEquals("Wrong Aln RMSD.",2.5333315417625233, stats.getResult(i++),tolerance);
+		assertEquals("Wrong Ref TM-Score.",.6456601492360861, stats.getResult(i++),tolerance);
+		assertEquals("Wrong Aln TM-Score.",.29790624754159745, stats.getResult(i++),tolerance);
 
-		assertEquals("Wrong Length for protein 1.", 78., stats.getResult(0),tolerance);
-		assertEquals("Wrong Length for protein 2.", 77., stats.getResult(1),tolerance);
-		assertEquals("Wrong Ref length.",72., stats.getResult(2),tolerance);
-		assertEquals("Wrong Aln length.",35., stats.getResult(3),tolerance);
-		assertEquals("Wrong PercentCorrectMetric.",100.*35./72., stats.getResult(4),tolerance);
-		assertEquals("Wrong 0-consistency.",35./72., stats.getResult(5),tolerance);
-		assertEquals("Wrong 4-consistency.",35./72., stats.getResult(6),tolerance);
+		assertEquals("Wrong PercentCorrectMetric.",100.*35./72., stats.getResult(i++),tolerance);
+		assertEquals("Wrong 0-consistency.",35./72., stats.getResult(i++),tolerance);
+		assertEquals("Wrong 4-consistency.",35./72., stats.getResult(i++),tolerance);
+		
+		assertEquals("Wrong number of gaps.",1., stats.getResult(i++),tolerance);
+		assertEquals("Wrong gap penalty.", 1.03, stats.getResult(i++),tolerance);
+		assertEquals("Wrong number of gaps.",0., stats.getResult(i++),tolerance);
+		assertEquals("Wrong gap penalty.", 0., stats.getResult(i++),tolerance);
+		
+		assertEquals("Wrong Ref ce_score.",2.3844852594668304/72.*(1.+1./72.), stats.getResult(i++),tolerance);
+		assertEquals("Wrong Aln ce_score.",2.5333315417625233/35., stats.getResult(i++),tolerance);
+
 	}
 	
 	public void testCECPAlignment() throws StructureException {
@@ -126,24 +178,53 @@ public class AlignmentStatsTest extends TestCase {
 //		metrics.add(new MetaDataMetric("alignmentTime","time"));
 		metrics.add(new AlignmentLengthMetric.Reference());
 		metrics.add(new AlignmentLengthMetric.Alignment());
-//		metrics.add(new RMSDMetric.Reference());
-//		metrics.add(new RMSDMetric.Alignment());
-//		metrics.add(new TMScoreMetric.Reference());
-//		metrics.add(new TMScoreMetric.Alignment());
+		
+		metrics.add(new RMSDMetric.Reference());
+		metrics.add(new RMSDMetric.Alignment());
+		metrics.add(new TMScoreMetric.Reference());
+		metrics.add(new TMScoreMetric.Alignment());
+		
 		metrics.add(new PercentCorrectMetric());
 		metrics.add(new ConsistencyMetric() );
 		metrics.add(new ConsistencyMetric(4) );
 
+		metrics.add(new GapLengthMetric.Reference());
+		// For fewer than 100 gap residues, the integer part gives number of gaps
+		// and the fractional part gives total gap length
+		metrics.add(new GapLengthMetric.Reference(1.01,.01));
+		metrics.add(new GapLengthMetric.Alignment());
+		metrics.add(new GapLengthMetric.Alignment(1.01,.01));
+		
+		metrics.add(new JiaCEScoreMetric.Reference());
+		metrics.add(new JiaCEScoreMetric.Alignment());
+
 		
 		AlignmentStats stats = new AlignmentStats(metrics,ref, alignment, structures[0],structures[1], null);
 
-		assertEquals("Wrong Length for protein 1.", 78., stats.getResult(0),tolerance);
-		assertEquals("Wrong Length for protein 2.", 77., stats.getResult(1),tolerance);
-		assertEquals("Wrong Ref length.",72., stats.getResult(2),tolerance);
-		assertEquals("Wrong Aln length.",77., stats.getResult(3),tolerance);
-		assertEquals("Wrong PercentCorrectMetric.",100., stats.getResult(4),tolerance);
-		assertEquals("Wrong 0-consistency.",1., stats.getResult(5),tolerance);
-		assertEquals("Wrong 4-consistency.",1., stats.getResult(6),tolerance);
+		int i=0;
+		assertEquals("Wrong Length for protein 1.", 78., stats.getResult(i++),tolerance);
+		assertEquals("Wrong Length for protein 2.", 77., stats.getResult(i++),tolerance);
+		assertEquals("Wrong Ref length.",72., stats.getResult(i++),tolerance);
+		assertEquals("Wrong Aln length.",77., stats.getResult(i++),tolerance);
+		
+		// Note that the following numbers are not hand calculated
+		assertEquals("Wrong Ref RMSD.",2.3844852594668304, stats.getResult(i++),tolerance);
+		assertEquals("Wrong Aln RMSD.",2.7051866319000473, stats.getResult(i++),tolerance);
+		assertEquals("Wrong Ref TM-Score.",.6456601492360861, stats.getResult(i++),tolerance);
+		assertEquals("Wrong Aln TM-Score.",.6573435138027048, stats.getResult(i++),tolerance);
+
+		assertEquals("Wrong PercentCorrectMetric.",100., stats.getResult(i++),tolerance);
+		assertEquals("Wrong 0-consistency.",1., stats.getResult(i++),tolerance);
+		assertEquals("Wrong 4-consistency.",1., stats.getResult(i++),tolerance);
+		
+		assertEquals("Wrong number of gaps.",1., stats.getResult(i++),tolerance);
+		assertEquals("Wrong gap penalty.", 1.03, stats.getResult(i++),tolerance);
+		assertEquals("Wrong number of gaps.",0., stats.getResult(i++),tolerance);
+		assertEquals("Wrong gap penalty.", 0., stats.getResult(i++),tolerance);
+
+		assertEquals("Wrong Ref ce_score.",2.3844852594668304/72.*(1.+1./72.), stats.getResult(i++),tolerance);
+		assertEquals("Wrong Aln ce_score.",2.7051866319000473/77., stats.getResult(i++),tolerance);
+
 	}
 	/**
 	 * Create multiple alignment for d1nkl__ vs d1qdma1 from RIPC.
@@ -203,6 +284,7 @@ public class AlignmentStatsTest extends TestCase {
 						new PDBResidue("74"),
 						new PDBResidue("75"),
 						new PDBResidue("76"),
+						// gap of 77,78,1
 						new PDBResidue("2"),
 						new PDBResidue("3"),
 						new PDBResidue("4"),
@@ -277,6 +359,7 @@ public class AlignmentStatsTest extends TestCase {
 						new PDBResidue("35S"),
 						new PDBResidue("36S"),
 						new PDBResidue("37S"),
+						//gap of 38S, 65S, 66S
 						new PDBResidue("67S"),
 						new PDBResidue("68S"),
 						new PDBResidue("69S"),

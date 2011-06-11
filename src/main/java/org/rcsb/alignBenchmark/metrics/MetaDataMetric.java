@@ -66,7 +66,7 @@ public class MetaDataMetric extends Metric {
 		if(metaData != null && metaData.containsKey(key)) {
 			return formatter.format(metaData.get(key));
 		} else {
-			return 0.0;
+			return Double.NaN;
 		}
 	}
 

@@ -123,6 +123,8 @@ public class MultipleAlignment
 	 * <p>
 	 * The conversion can be run for just a subset of the MultipleAlignment by 
 	 * specifying the appropriate protein IDs.
+	 * 
+	 * <p>This is a wrapper for {@link #getAlignmentMatrix(int[], List)}.
 	 * @param structures A list of structures for proteins in this MultipleAlignment.
 	 *  Used to map PDB residue numbers to internal coordinates.
 	 * @param pIDs For each entry in structures, specifies what alignment
@@ -133,27 +135,34 @@ public class MultipleAlignment
 	 * @throws StructureException If a pdb number does not appear in the corresponding Structure.
 	 */
 	public int[][] getAlignmentMatrix(String[] pIDs, List<Atom[]> structures) throws StructureException {
+		//Convert the pdb names to indices
 		int[] indices = new int[pIDs.length];
 		for(int i=0;i<pIDs.length;i++) {
 			int index;
+			// Find the index matching pIDs[i]
 			for(index=0; index<this.names.length; index++) {
 				if( this.names[index].equals( pIDs[i] )) {
 					break;
 				}
 			}
-			if(index==this.names.length) {
+			if(index==this.names.length) { //never hit break
 				throw new IllegalArgumentException("First argument expected to " +
 						"be a subset of getProteinIDs(). \""+pIDs[i]+"\" not found.");
 			}
 			indices[i]=index;
 		}
+		
+		// calculate for the referenced indices
 		return getAlignmentMatrix(indices,structures);
 	}
 	
 	/**
-	 * Converts the PDB coordinates of all proteins into internal residue numbers
-	 * @param structures One structure for each protein
-	 * @return
+	 * Converts the PDB coordinates of all proteins into internal residue numbers.
+	 * 
+	 * <p>This is a wrapper for {@link #getAlignmentMatrix(int[], List)}.
+	 * @param structures One structure for each protein in this alignment
+	 * @return A matrix with a row for each item in structures. Columns correspond
+	 *  to aligned residues between the specified proteins. 
 	 * @throws StructureException
 	 */
 	public int[][] getAlignmentMatrix(List<Atom[]> structures) throws StructureException {
@@ -162,10 +171,14 @@ public class MultipleAlignment
 					String.format("Error: %d structures provided, but alignment is length %d\n",
 							structures.size(),residues.length) );
 		}
+		
+		// Use all indices
 		int[] indices = new int[this.names.length];
 		for(int i=0;i< indices.length;i++) {
 			indices[i]=i;
 		}
+		
+		// calculate based on all indices
 		return getAlignmentMatrix(indices, structures);
 	}
 

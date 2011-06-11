@@ -15,8 +15,8 @@ import org.biojava.bio.structure.jama.Matrix;
 import org.rcsb.alignBenchmark.MultipleAlignment;
 
 
-public abstract class TMScoreMetric {
-   public static class Reference extends Metric {
+public abstract class TMScoreMetric extends Metric{
+   public static class Reference extends TMScoreMetric {
 
       @Override
       public double calculate(MultipleAlignment reference, AFPChain align, Atom[] ca1, Atom[] ca2, Map<String, Object> metaData) {
@@ -59,14 +59,9 @@ public abstract class TMScoreMetric {
       public String getName() {
          return "Ref_TM";
       }
-
-      @Override
-      public String format(double result) {
-         return String.format("%.4f", result);
-      }
    }
 
-   public static class Alignment extends Metric {
+   public static class Alignment extends TMScoreMetric {
 
       @Override
       public double calculate(MultipleAlignment reference, AFPChain align, Atom[] ca1, Atom[] ca2, Map<String, Object> metaData) {
@@ -76,18 +71,16 @@ public abstract class TMScoreMetric {
          } catch (StructureException e){
             return Double.NaN;
          }
-
-
       }
 
       @Override
       public String getName() {
          return "Aln_TM";
       }
-
-      @Override
-      public String format(double result) {
-         return String.format("%.4f", result);
-      }
+   }
+   
+   @Override
+   public String format(double result) {
+      return String.format("%.4f", result);
    }
 }
