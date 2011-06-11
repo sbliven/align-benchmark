@@ -79,6 +79,46 @@ public class PDBResidue extends ResidueNumber{
 		}
 		return String.format("%s%s.%s", str,super.toString(),this.getChainId() );
 	}
+
+	/**
+	 * @return
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((aaName == null) ? 0 : aaName.hashCode());
+		return result;
+	}
+
+	/**
+	 * Requires that the other object also be a PDBResidue and that all member fields be equal
+	 * @param obj
+	 * @return
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!super.equals(obj)) {
+			return false;
+		}
+		if (!(obj instanceof PDBResidue)) {
+			return false;
+		}
+		PDBResidue other = (PDBResidue) obj;
+		if (aaName == null) {
+			if (other.aaName != null) {
+				return false;
+			}
+		} else if (!aaName.equals(other.aaName)) {
+			return false;
+		}
+		return true;
+	}
 	
 	
 }

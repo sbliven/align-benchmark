@@ -261,7 +261,7 @@ public class MultipleAlignment
 			// AA must match if it has been set
 			boolean matchesAA = (
 					pdbCode.getAaName() == null ||
-					pdbCode.getAaName().equals(g.getPDBName())
+					pdbCode.getAaName().equalsIgnoreCase(g.getPDBName())
 					);
 			if(  matchesChain &&
 					matchesNum && matchesIns &&
