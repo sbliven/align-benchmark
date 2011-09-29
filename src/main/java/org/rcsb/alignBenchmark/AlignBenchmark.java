@@ -22,6 +22,7 @@ import org.biojava.bio.structure.Atom;
 import org.biojava.bio.structure.StructureException;
 import org.biojava.bio.structure.align.StructureAlignment;
 import org.biojava.bio.structure.align.StructureAlignmentFactory;
+import org.biojava.bio.structure.align.ce.CeCPMain;
 import org.biojava.bio.structure.align.ce.CeMain;
 import org.biojava.bio.structure.align.ce.CeParameters;
 import org.biojava.bio.structure.align.fatcat.FatCatFlexible;
@@ -290,21 +291,18 @@ public class AlignBenchmark {
 			System.out.println("Using CE aligner");
 			CeMain ceMain;
 			try {
-				ceMain = (CeMain) StructureAlignmentFactory.getAlgorithm(CeMain.algorithmName);
+				// CECP
+				if(alignerName.matches("CE.?CP.*")) {
+					ceMain = (CeMain) StructureAlignmentFactory.getAlgorithm(CeCPMain.algorithmName);
+				} else {
+					ceMain = (CeMain) StructureAlignmentFactory.getAlgorithm(CeMain.algorithmName);
+				}
 				CeParameters param = (CeParameters)ceMain.getParameters();
 				//CE0
 				if(alignerName.equals("CE0")) {
 					System.out.println("Setting Gap Size 0");
 					param.setMaxGapSize(0);
 				}
-				//CE-CP
-				else if(alignerName.matches("CE.?CP.*")) {
-					System.out.println("Setting Gap Size 0");
-					System.out.println("Checking for circular permutations");
-					param.setMaxGapSize(0);
-					param.setCheckCircular(true);
-				}
-				
 
 				//-sidechains
 				Pattern digitPat = Pattern.compile("(?:^|[^A-Z0-9])([0-9]+)(?:[^A-Z0-9]|$)");
@@ -405,7 +403,7 @@ public class AlignBenchmark {
 		String fileType = args[0];
 		if(fileType.equalsIgnoreCase("RIPC")) {
 			if(inFile == null ) {
-				URL inURL = AlignBenchmark.class.getResource("/RIPC.align");				
+				URL inURL = AlignBenchmark.class.getResource("/RIPC.align");
 				inFile = inURL.getFile();
 			}
 			parser = new RIPCParser(inFile);
@@ -424,6 +422,7 @@ public class AlignBenchmark {
 			return;
 		}
 
+		System.out.println("reading from "+inFile);
 		//// Done with parameters
 
 		Writer out;
@@ -439,7 +438,7 @@ public class AlignBenchmark {
 			}
 		}
 
-		AtomCache cache = new AtomCache(System.getProperty("java.io.tmpdir"), true);
+		AtomCache cache = new AtomCache();
 		cache.setStrictSCOP(false);
 		
 		AlignBenchmark bm = new AlignBenchmark(cache,aligner,maxLength);

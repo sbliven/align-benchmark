@@ -32,7 +32,7 @@ public class AlignmentStatsTest extends TestCase {
 
 	@Override
 	public void setUp() throws StructureException, IOException {
-		AtomCache cache = new AtomCache(System.getProperty("java.io.tmpdir"),true);
+		AtomCache cache = new AtomCache();
 
 
 		ref = createMA1();

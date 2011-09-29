@@ -147,14 +147,13 @@ public abstract class RMSDMetric extends Metric{
 		String pdb1 = "121p";
 		String pdb2 = "1htw.A";
 		try {
-			AtomCache cache = new AtomCache("/tmp/", true);
+			AtomCache cache = new AtomCache();
 			
 			Atom[] ca1 = cache.getAtoms(pdb1);
 			Atom[] ca2 = cache.getAtoms(pdb2);
 
 			CeMain ceMain;
-			ceMain = (CeMain) StructureAlignmentFactory.getAlgorithm(CeMain.algorithmName);
-			//((CeParameters)ceMain.getParameters()).setCheckCircular(true);
+			ceMain = (CeMain) StructureAlignmentFactory.getAlgorithm(CeMain.algorithmName);// or CeCPMain
 			((CeParameters)ceMain.getParameters()).setMaxGapSize(0);
 
 			AFPChain align = ceMain.align(ca1, ca2);

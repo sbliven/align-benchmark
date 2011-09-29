@@ -27,7 +27,7 @@ public class MultipleAlignmentTest extends TestCase {
 		cache = null;
 	}
 	public void setUp() {
-		cache = new AtomCache(System.getProperty("java.io.tmpdir"),true);
+		cache = new AtomCache();
 	}
 
 	public void testGetAlignmentMatrix() {
