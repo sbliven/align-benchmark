@@ -97,8 +97,8 @@ public class MultipleAlignmentTest extends TestCase {
 			//Some residues which should be found in 1nls, and their corresponding numbers
 			HashMap<PDBResidue,Integer> residues = new HashMap<PDBResidue, Integer>();
 			residues.put(new PDBResidue("8"), 7);
-			residues.put(new PDBResidue("8"), 7);
-			residues.put(new PDBResidue("8"), -1); // Ignores the amino acid
+			residues.put(new PDBResidue("8","GLU"), 7);
+			residues.put(new PDBResidue("8","ASP"), -1); // Ignores the amino acid
 
 			//Use reflection to get around private function
 			//calls findGroup()h

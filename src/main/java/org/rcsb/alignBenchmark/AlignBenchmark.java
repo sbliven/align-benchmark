@@ -270,7 +270,7 @@ public class AlignBenchmark {
 
 		// Argument parsing
 		String usage = "usage: AlignBenchmark parser alignment [infile [outfile [maxLength]]]\n" +
-		"  parser:    Either RIPC or CPDB\n" +
+		"  parser:    Benchmark name. Currently implemented: RIPC, CPDB, SAB, FASTA\n" +
 		"  alignment: One of CE, CE0, CE-CP, CE-sidechains SmithWaterman, FATCAT-rigid, FATCAT-flexible\n" +
 		"  infile:    If empty or omitted, gets alignments from biojava resource directory\n" +
 		"  outfile:   If empty, omitted or \"-\", uses standard out\n" +
@@ -415,6 +415,22 @@ public class AlignBenchmark {
 			}
 			parser = new CPDBParser(inFile);
 		}
+		else if(fileType.equalsIgnoreCase("fasta")) {
+			if(inFile == null ) {
+				System.err.println("No fasta alignment file specified as imput.");
+				System.err.println(usage);
+				System.exit(1);
+				return;
+			}
+			try {
+				parser = new FastaParser(inFile);
+			} catch(IOException e) {
+				e.printStackTrace();
+				System.exit(1);
+				return;
+			}
+		}
+		//TODO SAB
 		else {
 			System.err.println("Unrecognized parser. Choose from: RIPC, CPDB");
 			System.err.println(usage);
