@@ -17,7 +17,7 @@ public class PDBResidueTest extends TestCase {
 	public void setUp() throws IOException, StructureException {
 		String name1 = "2PTC";
 		
-		AtomCache cache = new AtomCache(System.getProperty("java.io.tmpdir"),true);
+		AtomCache cache = new AtomCache();
 		
 		struct1 = cache.getStructure(name1);
 		pdbNum1 = new String[] {
