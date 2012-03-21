@@ -10,18 +10,24 @@ import java.io.IOException;
 import java.io.BufferedReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.biojava.bio.structure.Structure;
 import org.biojava.bio.structure.StructureException;
 import org.biojava.bio.structure.align.util.AtomCache;
+import org.biojava.bio.structure.scop.RemoteScopInstallation;
 import org.biojava.bio.structure.scop.ScopFactory;
 import org.biojava.bio.structure.scop.ScopInstallation;
 import org.biojava3.alignment.template.AlignedSequence;
@@ -31,13 +37,16 @@ import org.biojava3.core.sequence.MultipleSequenceAlignment;
 import org.biojava3.core.sequence.ProteinSequence;
 import org.biojava3.core.sequence.compound.AminoAcidCompound;
 import org.biojava3.core.sequence.compound.AminoAcidCompoundSet;
+import org.biojava3.core.sequence.io.CasePreservingProteinSequenceCreator;
 import org.biojava3.core.sequence.io.FastaReader;
 import org.biojava3.core.sequence.io.GenericFastaHeaderParser;
 import org.biojava3.core.sequence.io.ProteinSequenceCreator;
 import org.biojava3.core.sequence.io.template.FastaHeaderParserInterface;
 import org.biojava3.core.sequence.io.template.SequenceCreatorInterface;
+import org.biojava3.core.sequence.template.AbstractSequence;
 import org.biojava3.core.sequence.template.Compound;
 import org.biojava3.core.sequence.template.CompoundSet;
+import org.biojava3.core.sequence.template.ProxySequenceReader;
 import org.biojava3.core.sequence.template.Sequence;
 
 
@@ -50,6 +59,12 @@ public class FastaParser implements MultipleAlignmentParser
 {
 	// Everything required for a FastaReader
 	private MultipleAlignment ma;
+	
+	/**
+	 * If true, consider upper-case letters aligned and lower-case letters
+	 * unaligned.
+	 */
+	//private boolean caseSensitive = false;
 	
 	/**
 	 * 
@@ -80,25 +95,48 @@ public class FastaParser implements MultipleAlignmentParser
 	public static void main(String[] args)
 	{
 		
-		String filename = "/home/sbliven/Documents/benchmark/Scheeff_kinase_align.fasta";
+		String filename;
+		FastaHeaderParserInterface<ProteinSequence, AminoAcidCompound> headerParser;
 		try {
 			
-			FastaHeaderParserInterface<ProteinSequence, AminoAcidCompound> headerParser;
+			filename = "/home/sbliven/Documents/benchmark/Scheeff_kinase_align.fasta";
+			
+			// parse headers like '> d4hhba_'
+			headerParser = new FastaHeaderParserInterface<ProteinSequence, AminoAcidCompound>() {
+				public void parseHeader(String header,
+						ProteinSequence sequence) {
+					String scopDomain = header.trim().substring(0, 7);
+					sequence.setOriginalHeader(header);
+					sequence.setAccession(new AccessionID(scopDomain));
+				}
+			};
+
+			filename = "/Users/blivens/dev/bourne/benchmarks/youkha/1KQ1-1C4Q.a2m";
+			// >pdb|1KQ1|A|gi|22219069 [Staphylococcus aureus] 1.55 A Crystal Structure Of 
 			//headerParser = new GenericFastaHeaderParser<ProteinSequence, AminoAcidCompound>();
 			headerParser = new FastaHeaderParserInterface<ProteinSequence, AminoAcidCompound>() {
-					public void parseHeader(String header,
-							ProteinSequence sequence) {
-						String scopDomain = header.trim().substring(0, 7);
-						sequence.setOriginalHeader(header);
-						sequence.setAccession(new AccessionID(scopDomain));
-					}
-				};
+				public void parseHeader(String header,
+						ProteinSequence sequence) {
+					sequence.setOriginalHeader(header);
+					header = header.trim();
+					String[] fields = header.split("\\|");
+					
+					// PDBID+CHAIN
+					String accession = fields[1]+"."+fields[2];
+					
+					sequence.setAccession(new AccessionID(accession));
+				}
+			};
 
+			
+			AminoAcidCompoundSet aaSet;
+			aaSet = AminoAcidCompoundSet.getAminoAcidCompoundSet();
+			
 			FastaReader<ProteinSequence, AminoAcidCompound> reader
 				= new FastaReader<ProteinSequence, AminoAcidCompound>(
 					new File(filename),
 					headerParser,
-					new ProteinSequenceCreator(AminoAcidCompoundSet.getAminoAcidCompoundSet()));
+					new CasePreservingProteinSequenceCreator(aaSet));
 			LinkedHashMap<String,ProteinSequence> sequences = reader.process();
 
 			//Profile<ProteinSequence, AminoAcidCompound> msa = new SimpleProfile<ProteinSequence,AminoAcidCompound>(null,null);
@@ -120,6 +158,7 @@ public class FastaParser implements MultipleAlignmentParser
 			*/
 			
 			// Use SCOP 1.65 (Dec 2003)
+			// Requires using a local installation rather than RemoteScopInstallation
 			ScopInstallation scop = new ScopInstallation();
 			scop.setScopVersion("1.65");
 			ScopFactory.setScopDatabase(scop);
@@ -128,19 +167,22 @@ public class FastaParser implements MultipleAlignmentParser
 			cache.setFetchFileEvenIfObsolete(true);
 			cache.setStrictSCOP(false);
 			
-			AminoAcidCompoundSet aaSet = AminoAcidCompoundSet.getAminoAcidCompoundSet();
 			
 			
 			// order the sequences
 			List<String> sequenceIDs = new ArrayList<String>(sequences.keySet());
 			
+			
+			
+			// Match each sequence  to a series of PDB Residue numbers
 			List<List<PDBResidue>> residues = new ArrayList<List<PDBResidue>>();
+			//List<List<Boolean>> isGap = new ArrayList<List<Boolean>>(); // Keep track of gaps
 			for(String accession : sequenceIDs) {
 				if(accession.equals("d1cjaa_")) break;
 
 				ProteinSequence seq = sequences.get(accession);
-				//String accession = seq.getAccession().toString();
-				System.out.println("Fetchin "+accession);
+								
+				System.out.println("Fetching "+accession);
 				Structure struct = cache.getStructure(accession);
 				List<PDBResidue> match = PDBResidue.matchSequenceToStructure(seq, struct);
 				
@@ -148,8 +190,23 @@ public class FastaParser implements MultipleAlignmentParser
 				
 				residues.add(match);
 				
+				// check for gaps
+				Collection<Object> cases = seq.getUserCollection();// set by CaseSensitiveProteinSequenceCreator
+				assert(cases.size() == match.size());
+				//List<Boolean> gaps = new ArrayList<Boolean>(cases.size());
+				int i=0;
+				for( Object res : cases ) {
+					boolean gap = res.equals(Character.UPPERCASE_LETTER);
+					if(gap) {
+						match.set(i, null);
+					}
+					//gaps.add( gap );
+					i++;
+				}
+				//isGap.add(gaps);
 			}
 			
+			// print the AA sequence and corresponding residues
 			for(int j = 0;j<residues.size();j++) {
 				ProteinSequence seq = sequences.get(sequenceIDs.get(j));
 				List<PDBResidue> match = residues.get(j);
@@ -203,6 +260,7 @@ public class FastaParser implements MultipleAlignmentParser
 		}*/
 	}
 
+
 	private static String getShortName(	PDBResidue res) {
 		AminoAcidCompoundSet aaSet = AminoAcidCompoundSet.getAminoAcidCompoundSet();
 		String aaName = "?";
@@ -213,6 +271,11 @@ public class FastaParser implements MultipleAlignmentParser
 		return aaName;
 	}
 
+	/**
+	 * Removes all gaps from a protein sequence
+	 * @param gapped
+	 * @return
+	 */
 	public static ProteinSequence removeGaps(ProteinSequence gapped) {
 		final String gapString = "-";
 		
@@ -324,202 +387,47 @@ public class FastaParser implements MultipleAlignmentParser
 		
 		return null; //TODO Stub
 	}
-
-
-
+	/*
 	/**
-	 * Converts scop domain identifiers (eg 'd1lnlb1') into a PDB ID and chain
-	 * (eg '1lnl.B').
-	 * @param scopID
-	 * @return the extracted pdbid and chain, or null if the scopID is malformed.
+	 * @return whether to consider upper-case letters aligned and lower-case
+	 *  letters unaligned.
 	 *
-	public static String getPDBName(String scopID) {
-		Matcher match = scopRegex.matcher(scopID);
-		if(!match.matches()) {
-			return null;
-		}
-		if(!match.group(2).equals("_")) {
-			return match.group(1)+"."+match.group(2).toUpperCase();
-		} else {
-			return match.group(1);
-		}
+	public boolean isCaseSensitive() {
+		return caseSensitive;
 	}
+
 	/**
-	 * Parses an array of scop domain identifiers, calling getPDBName for each.
-	 * @param scopIDs
-	 * @return
-	 * @see getPDBName
+	 * @param caseSensitive If true, consider upper-case letters aligned and lower-case letters
+	 * unaligned.
 	 *
-	public static String[] getPDBNames(String[] scopIDs) {
-		String[] pdbNames = new String[scopIDs.length];
-		for(int i=0;i<scopIDs.length;i++) {
-			pdbNames[i] = getPDBName(scopIDs[i]);
-		}
-		return pdbNames;
+	public void setCaseSensitive(boolean caseSensitive) {
+		this.caseSensitive = caseSensitive;
 	}
-	
-	
-	/**
-	 * Parses a RIPC alignment file.
-	 * <p>
-	 * Format:<br/><pre>
-	 * alignment := comment* labelPair resPair+ '\n'
-	 * comment := '#' .* '\n' | '\n'
-	 * labelPair := '#' (label1) '-' (label2)
-	 * resPair := res ' ' res '\n'
-	 * res := (3-letter amino acid code)'.'(pdb res number)'.'(insertion code)'.'(chain)</pre>
-	 * Where outputs are listed in parentheses. Note that alignments must be separated by empty lines.
-	 * <p>
-	 * Example:<br/><pre>
-	 * #d1hcy_2-d1lnlb1
-	 * HIS.194._._	HIS.41._.B
-	 * HIS.198._._	HIS.61._.B
-	 * HIS.224._._	HIS.70._.B
-	 * HIS.344._._	HIS.181._.B
-	 *
-	 * @author Spencer Bliven
-	 *
-	 *
-	protected static class RIPCIterator implements Iterator<MultipleAlignment> {
-		private BufferedReader ripc;
-		private String[] nextLabels;
 
-		private static final Pattern labelRegex =
-			Pattern.compile("^\\#([^-]+)-([^-]+)$");
-		private static final Pattern pairRegex = 
-			Pattern.compile("^([A-Z]{3})\\.(\\d+)\\.(.)\\.(.)\\s+([A-Z]{3})\\.(\\d+)\\.(.)\\.(.)$");
-		private static final Pattern commentRegex = 
-			Pattern.compile("^(?:#.*|$)"); // labels are a subset of comments; check for labels first
-
-		public RIPCIterator(String filename) throws IOException {
-			this(new BufferedReader(new FileReader(filename)));
-		}
-		public RIPCIterator(BufferedReader ripc) throws IOException {
-			this.ripc = ripc;
-			nextLabels = null;
-			skipComments();
-		}
-		//@Override
-		public MultipleAlignment next()
-		{
-			List<List<PDBResidue>> residues = new ArrayList<List<PDBResidue>>(2);
-			residues.add(new LinkedList<PDBResidue>());
-			residues.add(new LinkedList<PDBResidue>());
-
-
-			String line;
-			try {
-				line = ripc.readLine();
-
-				while( line!=null ) {
-					line = line.trim();
-					// Check if line defines a residue pair
-					Matcher pair = pairRegex.matcher(line);
-					if(pair.matches()) {
-//						String aa1 = pair.group(1);
-//						String aa2 = pair.group(5);
-
-						String pdb1 = pair.group(2);
-						String pdb2 = pair.group(6);
-
-						//Add insertion codes
-						if( !pair.group(3).equals("_") ) {
-							pdb1 += pair.group(3);
-						}
-						if( !pair.group(7).equals("_") ) {
-							pdb2 += pair.group(7);
-						}
-
-//						String chain1 = pair.group(4);
-//						String chain2 = pair.group(8);
-
-
-						residues.get(0).add(new PDBResidue(pdb1));
-						residues.get(1).add(new PDBResidue(pdb2));
-					}
-					else {
-						// Check if line starts a new set of proteins
-						Matcher labels=labelRegex.matcher(line);
-						if(labels.matches()) {
-							String[] names = nextLabels.clone();
-							// To use full chains:
-							//names = RIPCParser.getPDBNames(nextLabels);
-							MultipleAlignment m = new MultipleAlignment(names,residues);
-
-							nextLabels[0] = labels.group(1);
-							nextLabels[1] = labels.group(2);
-
-							return m;
-						}
-						else if(commentRegex.matcher(line).matches()) {
-							// ignore comments
-						}
-						else {
-							// Oops! Something's wrong
-							throw new IllegalStateException("Formatting error. Unrecognized line:\n"+line);
-						}
-					}
-
-					line = ripc.readLine();
-				}
-			} catch (IOException e) {
-				throw new NoSuchElementException("IOException occured");
+	/*
+	private static class CaseInsensitiveAminoAcidCompoundSet extends AminoAcidCompoundSet {
+		public CaseInsensitiveAminoAcidCompoundSet() {
+			super();
+			
+			List<AminoAcidCompound> upperCaseAAs = this.getAllCompounds();
+			//List<AminoAcidCompound> lowerCaseAAs = new ArrayList<AminoAcidCompound>(upperCaseAAs.size());
+			
+			for(AminoAcidCompound aa:upperCaseAAs) {
+				String upper = aa.getShortName();
+				String lower = upper.toLowerCase();
+				AminoAcidCompound aa2 = new AminoAcidCompound(this, lower, aa.getLongName(), aa.getDescription(), aa.getMolecularWeight());
+				
+				//lowerCaseAAs.add(aa2);
+				aminoAcidCompoundCache.put(lower, aa2);
 			}
-
-			MultipleAlignment m = new MultipleAlignment(FastaParser.getPDBNames(nextLabels),residues);
-			nextLabels = null;
-			return m;
-		}
-
-		/**
-		 * Skips the first level of comments and initializes nextLabels to the first alignment.
-		 * @throws IOException 
-		 * @throws IOException 
-		 *
-		private void skipComments() throws IOException {
-			String line;
-			line = ripc.readLine();
-
-			while( line!=null ) {
-				line = line.trim();
-				Matcher labels=labelRegex.matcher(line);
-				if(labels.matches()) {
-					nextLabels = new String[2];
-					nextLabels[0] = labels.group(1);
-					nextLabels[1] = labels.group(2);
-					return;
-				}
-				Matcher comments=commentRegex.matcher(line);
-				if(!comments.matches()) {
-					// Oops! Something's wrong
-					throw new IllegalStateException("Formatting error. Expected comment or label, found:\n"+line);
-				}
-
-				line = ripc.readLine();
-			}
-
-			throw new NoSuchElementException();
 		}
 		
+	    private final static CaseInsensitiveAminoAcidCompoundSet aminoAcidCompoundSet = new CaseInsensitiveAminoAcidCompoundSet();
 
-		//@Override
-		public boolean hasNext()
-		{
-			return nextLabels != null;
-		}
-
-
-
-		/**
-		 * Not implemented.
-		 *
-		//@Override
-		public void remove()
-		{
-			throw new UnsupportedOperationException();
-		}
-
+	    public static CaseInsensitiveAminoAcidCompoundSet getAminoAcidCompoundSet() {
+	        return aminoAcidCompoundSet;
+	    }
 	}
-
-*/
+	*/
+	
 }
