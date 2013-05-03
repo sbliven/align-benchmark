@@ -24,9 +24,13 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.biojava.bio.structure.Group;
+import org.biojava.bio.structure.ResidueNumber;
 import org.biojava.bio.structure.Structure;
 import org.biojava.bio.structure.StructureException;
 import org.biojava.bio.structure.align.util.AtomCache;
+import org.biojava.bio.structure.io.FastaStructureParser;
+import org.biojava.bio.structure.io.StructureSequenceMatcher;
 import org.biojava.bio.structure.scop.RemoteScopInstallation;
 import org.biojava.bio.structure.scop.ScopFactory;
 import org.biojava.bio.structure.scop.ScopInstallation;
@@ -429,5 +433,120 @@ public class FastaParser implements MultipleAlignmentParser
 	    }
 	}
 	*/
+	
+	public static void main2(String[] args)
+	{
+		
+		String filename;
+		FastaHeaderParserInterface<ProteinSequence, AminoAcidCompound> headerParser;
+		try {
+			
+			filename = "/home/sbliven/Documents/benchmark/Scheeff_kinase_align.fasta";
+			filename = "/Users/blivens/dev/bourne/benchmarks/Scheeff_kinase_align.fasta";
+			// parse headers like '> d4hhba_'
+			headerParser = new FastaHeaderParserInterface<ProteinSequence, AminoAcidCompound>() {
+				public void parseHeader(String header,
+						ProteinSequence sequence) {
+					String scopDomain = header.trim().substring(0, 7);
+					sequence.setOriginalHeader(header);
+					sequence.setAccession(new AccessionID(scopDomain));
+				}
+			};
+
+			
+			filename = "/Users/blivens/dev/bourne/benchmarks/youkha/1KQ1-1C4Q.a2m";
+			// >pdb|1KQ1|A|gi|22219069 [Staphylococcus aureus] 1.55 A Crystal Structure Of 
+			//headerParser = new GenericFastaHeaderParser<ProteinSequence, AminoAcidCompound>();
+			headerParser = new FastaHeaderParserInterface<ProteinSequence, AminoAcidCompound>() {
+				public void parseHeader(String header,
+						ProteinSequence sequence) {
+					sequence.setOriginalHeader(header);
+					header = header.trim();
+					String[] fields = header.split("\\|");
+					
+					// PDBID+CHAIN
+					String accession = fields[1]+"."+fields[2];
+					
+					sequence.setAccession(new AccessionID(accession));
+				}
+			};
+			
+			
+			
+			// Use SCOP 1.65 (Dec 2003)
+			// Requires using a local installation rather than RemoteScopInstallation
+			ScopInstallation scop = new ScopInstallation();
+			scop.setScopVersion("1.65");
+			ScopFactory.setScopDatabase(scop);
+
+			AtomCache cache = new AtomCache();
+			cache.setFetchFileEvenIfObsolete(true);
+			cache.setStrictSCOP(false);
+			
+			AminoAcidCompoundSet aaSet = AminoAcidCompoundSet.getAminoAcidCompoundSet();
+			
+			// parse file
+			FastaStructureParser parser = new FastaStructureParser(
+					new File(filename),
+					headerParser,
+					new CasePreservingProteinSequenceCreator(aaSet),
+					cache);
+			parser.process();
+			
+			ResidueNumber[][] residues = parser.getResidues();
+			ProteinSequence[] sequences = parser.getSequences();
+			Structure[] structures = parser.getStructures();
+			String[] accessions = parser.getAccessions();
+			
+			// Set lowercase residues to null too
+			for(int structNum = 0; structNum<sequences.length;structNum++) { // should iterate in the same order
+				ProteinSequence seq = sequences[structNum];
+				Collection<Object> userCollection = seq.getUserCollection();
+				assert(userCollection != null); // should have been set by seq creator
+				assert(userCollection.size() == residues[structNum].length);
+				int pos = 0;
+				for(Object isAligned : userCollection) {
+					assert(isAligned instanceof Boolean);
+					if(!(Boolean)isAligned) {
+						residues[structNum][pos] = null;
+					}
+					pos++;
+				}
+			}
+
+			
+			// Remove alignment columns with a gap
+			residues = StructureSequenceMatcher.removeGaps(residues);
+
+			System.out.println();
+			for(int i=0; i<residues.length;i++) {
+				Structure struct = structures[i];
+				System.out.print(accessions[i]+":\t");
+				for(int j=0;j<residues[i].length;j++) {
+					ResidueNumber res = residues[i][j];
+					String name;
+					if(res == null) {
+						name = "-";
+					} else {
+						Group g = struct.getChainByPDB(res.getChainId()).getGroupByPDB(res);
+						AminoAcidCompound aa = aaSet.getCompoundForString(g.getPDBName());
+						name = aa.getShortName();
+					}
+					System.out.print(name);
+				}
+				System.out.println();
+			}
+			
+			
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (StructureException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
 	
 }
